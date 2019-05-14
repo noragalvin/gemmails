@@ -59,7 +59,7 @@ func PrintBeautyResponse(r *http.Response) {
 	fmt.Println(string(requestDump))
 }
 
-// Contains ..
+// Contains check an item contains in slice
 func Contains(slice []string, item string) bool {
 	set := make(map[string]struct{}, len(slice))
 	for _, s := range slice {

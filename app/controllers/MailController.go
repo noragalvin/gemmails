@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"gemmails/app/helpers"
+	"gemmails/app/models"
 	v "gemmails/app/utils/view"
 	"net/http"
 	"strconv"
@@ -46,6 +47,7 @@ func sendToMailChimp(r *http.Request) error {
 	params := r.URL.Query()
 	apiKey := params.Get("apiKey")
 	listID := params.Get("listId")
+	shopifyDomain := params.Get("shopifyDomain")
 	version, err := strconv.Atoi(params.Get("version"))
 	if err != nil {
 		return err
@@ -87,6 +89,61 @@ func sendToMailChimp(r *http.Request) error {
 	data["PHONE"] = formInfo.Phone
 	data["ADDRESS"] = formInfo.Address
 
+	// Store subscriber to database
+	// begin a transaction
+	db := models.OpenDB()
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		return err
+	}
+	// http://localhost:8000/api/send-mail/mailchimp?version=2&listId=38eb0a9a92&apiKey=549867f2dd69ed0aaf9efad306eb5f71-us20&shopifyDomain=clonenora02.myshopify.com&formData={"fname":"nora2","lname":"galvin2","address":"Vietnam","email":"clonenora02@gmail.com","phone":"123456"}
+
+	shop := models.Shop{}
+	tx.Where("shopify_domain = ?", shopifyDomain).First(&shop)
+	if shop.ID == 0 {
+		shop.ShopifyDomain = shopifyDomain
+		if err := tx.Create(&shop).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	} else {
+		//TODO: update shop info
+	}
+
+	// Find subscriber.  Update if exists. Create if not found
+	subscriber := models.Subscriber{}
+	tx.Where("email = ? AND shopify_domain = ? AND list_id = ?", formInfo.Email, shopifyDomain, listID).First(&subscriber)
+	if subscriber.ID == 0 {
+		s := models.Subscriber{
+			ListID:        listID,
+			FName:         fname,
+			LName:         lname,
+			Phone:         formInfo.Phone,
+			Address:       formInfo.Address,
+			ShopifyDomain: shopifyDomain,
+			Email:         formInfo.Email,
+		}
+		if err := tx.Create(&s).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	} else {
+		subscriber.FName = fname
+		subscriber.LName = lname
+		subscriber.Phone = formInfo.Phone
+		subscriber.Address = formInfo.Address
+		if err := tx.Save(&subscriber).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// Send to Mailchimp via Mailchimp api v3
 	client := gochimp3.New(apiKey)
 
 	// Add subscriber
@@ -107,5 +164,6 @@ func sendToMailChimp(r *http.Request) error {
 		return err
 	}
 
+	tx.Commit()
 	return nil
 }

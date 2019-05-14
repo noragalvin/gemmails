@@ -1,7 +1,8 @@
 package models
 
+// Shop ..
 type Shop struct {
 	Model
-	ShopifyDomain string  `json:"shopify_domain;omitempty" gorm:"type:nvarchar(100);not null"`
-	Mails         []*Mail `json:"mails;omitempty" gorm:"foreignkey:ShopifyDomain;association_foreignkey:ShopifyDomain"`
+	ShopifyDomain string        `json:"shopify_domain;omitempty" gorm:"type:varchar(100);not null"`
+	Subscribers   []*Subscriber `json:"subscribers;omitempty" gorm:"foreignkey:ShopifyDomain;association_foreignkey:ShopifyDomain"`
 }

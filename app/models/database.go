@@ -35,7 +35,7 @@ func InitDB() {
 		// panic(err)
 	}
 	db = conn
-	db.Debug().AutoMigrate()
+	db.Debug().AutoMigrate(Shop{}, Subscriber{})
 }
 
 // OpenDB created connect database
