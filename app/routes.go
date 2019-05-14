@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"gemmails/app/controllers"
+
 	"github.com/gorilla/mux"
 )
 
@@ -18,6 +20,8 @@ func NewRouter() *mux.Router {
 	---/api/themes/{id} -> DELETE: destroy theme by id
 	*/
 	// router.HandleFunc("/api/admin/theme", controllers.ThemeAdminUpdate).Methods("POST")
+
+	router.HandleFunc("/api/send-mail/{destination}", controllers.MailSend).Methods("GET")
 
 	return router
 }
