@@ -12,6 +12,7 @@ import (
 	"github.com/hanzoai/gochimp3"
 )
 
+// FormInfo ..
 type FormInfo struct {
 	Email   string `json:"email"`
 	Name    string `json:"name"`
@@ -21,6 +22,7 @@ type FormInfo struct {
 	Address string `json:"address"`
 }
 
+// MailSend ..
 func MailSend(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	destination := vars["destination"]
@@ -33,7 +35,7 @@ func MailSend(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	default:
-		v.RespondBadRequest(w, v.Message(false, "Missing destination"))
+		v.RespondBadRequest(w, v.Message(false, "Wrong destination"))
 		return
 	}
 
