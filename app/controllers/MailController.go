@@ -35,6 +35,12 @@ func MailSend(w http.ResponseWriter, r *http.Request) {
 			v.RespondBadRequest(w, v.Message(false, err.Error()))
 			return
 		}
+	case "omnisend":
+		err := sendToOmnisend(r)
+		if err != nil {
+			v.RespondBadRequest(w, v.Message(false, err.Error()))
+			return
+		}
 	default:
 		v.RespondBadRequest(w, v.Message(false, "Wrong destination"))
 		return
@@ -165,5 +171,12 @@ func sendToMailChimp(r *http.Request) error {
 	}
 
 	tx.Commit()
+	return nil
+}
+
+func sendToOmnisend(r *http.Request) error {
+	// Api key: 5cda78668653ed3e50c96af9-zq91qjo93tzNn3BVY4Yr2Njl95HjCLFK2HUPFokznrrvjkwrK9
+	// List ID: 5cda877f8653ed591c6056ec
+
 	return nil
 }
