@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -32,6 +33,7 @@ func InitDB() {
 
 	conn, err := gorm.Open("postgres", dbURI)
 	if err != nil {
+		log.Println("ERROR DATABASE", err.Error())
 		// panic(err)
 	}
 	db = conn

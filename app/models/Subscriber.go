@@ -10,5 +10,7 @@ type Subscriber struct {
 	Phone         string `json:"phone,omitempty" gorm:"type:varchar(50)"`
 	Address       string `json:"address,omitempty" gorm:"type:varchar(200)"`
 	ShopifyDomain string `json:"shopify_domain,omitempty" gorm:"type:varchar(100);not null"`
-	Shop          *Shop  `json:"shop,omitempty" gorm:"foreignkey:ShopifyDomain"`
+	Source        string `json:"source,omitempty" gorm:"type:varchar(50);not null"`
+
+	Shop *Shop `json:"shop,omitempty" gorm:"foreignkey:ShopifyDomain"`
 }

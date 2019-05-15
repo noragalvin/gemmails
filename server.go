@@ -18,7 +18,6 @@ var topics []string
 func init() {
 	if os.Getenv("MODE") != "production" {
 		err := godotenv.Load()
-		log.Println(err)
 		if err != nil {
 			log.Fatal("Error loading .env file")
 		}

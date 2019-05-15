@@ -11,7 +11,7 @@ func NewRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 	// router.Use(auth.ValidateAuth)
 
-	router.HandleFunc("/api/send-mail/{destination}", controllers.MailSend).Methods("GET")
+	router.HandleFunc("/api/send-mail/{destination}", controllers.MailSend).Methods("POST")
 
 	return router
 }
