@@ -6,6 +6,7 @@ require (
 	github.com/hanzoai/gochimp3 v0.0.0-20190409003955-c373126fb1fd
 	github.com/jinzhu/gorm v1.9.8
 	github.com/joho/godotenv v1.3.0
+	github.com/noragalvin/goklaviyo v0.0.0-20190515081308-1fb4d63962b6
 	github.com/noragalvin/goomnisend v0.0.0-20190515020700-cc226642608f
 	github.com/rs/cors v1.6.0
 	golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2

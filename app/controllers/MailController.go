@@ -12,6 +12,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/hanzoai/gochimp3"
+	"github.com/noragalvin/goklaviyo"
 	"github.com/noragalvin/goomnisend"
 )
 
@@ -39,6 +40,12 @@ func MailSend(w http.ResponseWriter, r *http.Request) {
 		}
 	case "omnisend":
 		err := sendToOmnisend(r, destination)
+		if err != nil {
+			v.RespondBadRequest(w, v.Message(false, err.Error()))
+			return
+		}
+	case "klaviyo":
+		err := sendToKlaviyo(r, destination)
 		if err != nil {
 			v.RespondBadRequest(w, v.Message(false, err.Error()))
 			return
@@ -188,6 +195,79 @@ func sendToOmnisend(r *http.Request, source string) error {
 	reqParams.Lists = lists
 
 	if _, err := client.CreateMember(&reqParams); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func sendToKlaviyo(r *http.Request, source string) error {
+	// 	apiKey := "pk_fd63d1b7a65f150c2d70994539db5077bb"
+	// 	listID := "QGnDEg"
+	params := r.URL.Query()
+	apiKey := params.Get("apiKey")
+	listID := params.Get("listId")
+	shopifyDomain := params.Get("shopifyDomain")
+	version, err := strconv.Atoi(params.Get("version"))
+	if err != nil {
+		return err
+	}
+
+	// formData: {"name":"Nora Galvin","fname":"nora", "lname": "galvin", "address": "Vietnam", "email": "clonenora01@gmail.com", "phone": "123456"}
+
+	formInfo := FormInfo{}
+
+	err = json.NewDecoder(r.Body).Decode(&formInfo)
+	if err != nil {
+		return err
+	}
+
+	if formInfo.Name != "" {
+		arrName := strings.Split(formInfo.Name, " ")
+		if len(arrName) > 1 {
+			formInfo.FName = arrName[0]
+			formInfo.LName = arrName[1]
+		} else if len(arrName) == 1 {
+			formInfo.FName = arrName[0]
+		}
+	}
+
+	if version >= 2 {
+	} else {
+		if formInfo.FName == "" {
+			formInfo.FName = "John"
+		}
+		if formInfo.LName == "" {
+			formInfo.LName = "Doe"
+		}
+	}
+
+	data := make(map[string]interface{})
+	data["FNAME"] = formInfo.FName
+	data["LNAME"] = formInfo.LName
+	data["PHONE"] = formInfo.Phone
+	data["ADDRESS"] = formInfo.Address
+
+	// TODO: go routines store to database
+	go storeShopAndSubscriber(shopifyDomain, source, listID, formInfo)
+
+	// Send to Klaviyo via klaviyo api
+	client := goklaviyo.New(apiKey)
+
+	member := goklaviyo.MemberRequest{}
+	member.Email = formInfo.Email
+	member.FirstName = formInfo.FName
+	member.LastName = formInfo.LName
+	member.Phone = formInfo.Phone
+	member.Address = formInfo.Address
+
+	lists := []goklaviyo.MemberRequest{}
+	lists = append(lists, member)
+
+	memberSubscriber := goklaviyo.MemberSubscribeRequest{}
+	memberSubscriber.Profiles = lists
+
+	if _, err := client.CreateMember(listID, &memberSubscriber); err != nil {
 		return err
 	}
 
